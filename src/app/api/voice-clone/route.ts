@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if Volcengine key is configured
-    if (!process.env.VOLCENGINE_VOICE_API_KEY) {
+    if (!process.env.VOLCENGINE_VOICE_APP_ID || !process.env.VOLCENGINE_VOICE_API_KEY) {
       return NextResponse.json({
         voiceId: `clone_${Date.now()}`,
         status: "demo",
