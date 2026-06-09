@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Char(36)
+  phone        String   @unique @db.VarChar(20)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  displayName  String?  @map("display_name") @db.VarChar(50)
+  role         String   @default("user") @db.VarChar(20)
+  credits      Int      @default(3000)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  creditTransactions   CreditTransaction[]
+  userVoices           UserVoice[]
+  generatedAudios      GeneratedAudio[]
+  userAvatars          UserAvatar[]
+  digitalHumanVideos   DigitalHumanVideo[]
+  videoGenerations     VideoGeneration[]
+  rechargeCodesCreated RechargeCode[]     @relation("CreatedByRef")
+  rechargeCodesUsed    RechargeCode[]     @relation("UsedByRef")
+
+  @@map("users")
+}
+
+model ApiConfig {
+  id           String   @id @default(uuid()) @db.Char(36)
+  apiType      String   @map("api_type") @db.VarChar(50)
+  providerName String   @map("provider_name") @db.VarChar(50)
+  apiKey       String?  @map("api_key") @db.VarChar(255)
+  baseUrl      String?  @map("base_url") @db.VarChar(500)
+  isEnabled    Boolean  @default(true) @map("is_enabled")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("api_configs")
+}
+
+model CreditTransaction {
+  id           String   @id @default(uuid()) @db.Char(36)
+  userId       String   @map("user_id") @db.Char(36)
+  amount       Int
+  type         String   @db.VarChar(20)
+  description  String?  @db.VarChar(255)
+  balanceAfter Int?     @map("balance_after")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("credit_transactions")
+}
+
+model RechargeCode {
+  id        String    @id @default(uuid()) @db.Char(36)
+  code      String    @unique @db.VarChar(100)
+  credits   Int
+  isUsed    Boolean   @default(false) @map("is_used")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  createdBy String?   @map("created_by") @db.Char(36)
+  usedBy    String?   @map("used_by") @db.Char(36)
+
+  creator User? @relation("CreatedByRef", fields: [createdBy], references: [id])
+  user    User? @relation("UsedByRef", fields: [usedBy], references: [id])
+
+  @@index([code])
+  @@map("recharge_codes")
+}
+
+model UserVoice {
+  id              String   @id @default(uuid()) @db.Char(36)
+  userId          String   @map("user_id") @db.Char(36)
+  voiceName       String   @map("voice_name") @db.VarChar(100)
+  audioUrl        String?  @map("audio_url") @db.VarChar(500)
+  providerVoiceId String?  @map("provider_voice_id") @db.VarChar(100)
+  referenceText   String?  @map("reference_text") @db.Text
+  status          String   @default("processing") @db.VarChar(20)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generatedAudios GeneratedAudio[]
+
+  @@index([userId])
+  @@map("user_voices")
+}
+
+model GeneratedAudio {
+  id              String   @id @default(uuid()) @db.Char(36)
+  userId          String   @map("user_id") @db.Char(36)
+  voiceId         String?  @map("voice_id") @db.Char(36)
+  textContent     String   @map("text_content") @db.Text
+  audioUrl        String?  @map("audio_url") @db.VarChar(500)
+  durationSeconds Float?   @map("duration_seconds")
+  status          String   @default("processing") @db.VarChar(20)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voice            UserVoice?        @relation(fields: [voiceId], references: [id])
+  videoGenerations VideoGeneration[]
+
+  @@index([userId])
+  @@map("generated_audios")
+}
+
+model UserAvatar {
+  id               String   @id @default(uuid()) @db.Char(36)
+  userId           String   @map("user_id") @db.Char(36)
+  avatarName       String?  @map("avatar_name") @db.VarChar(100)
+  videoUrl         String?  @map("video_url") @db.VarChar(500)
+  providerAvatarId String?  @map("provider_avatar_id") @db.VarChar(100)
+  resultUrl        String?  @map("result_url") @db.VarChar(500)
+  status           String   @default("processing") @db.VarChar(20)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_avatars")
+}
+
+model Avatar {
+  id               String   @id @default(uuid()) @db.Char(36)
+  name             String   @db.VarChar(50)
+  thumbnailUrl     String?  @map("thumbnail_url") @db.VarChar(500)
+  providerAvatarId String   @map("provider_avatar_id") @db.VarChar(100)
+  category         String?  @db.VarChar(50)
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("avatars")
+}
+
+model DigitalHumanVideo {
+  id              String   @id @default(uuid()) @db.Char(36)
+  userId          String   @map("user_id") @db.Char(36)
+  title           String?  @db.VarChar(200)
+  videoUrl        String?  @map("video_url") @db.VarChar(500)
+  thumbnailUrl    String?  @map("thumbnail_url") @db.VarChar(500)
+  durationSeconds Float?   @map("duration_seconds")
+  status          String   @default("processing") @db.VarChar(20)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("digital_human_videos")
+}
+
+model VideoGeneration {
+  id              String   @id @default(uuid()) @db.Char(36)
+  userId          String   @map("user_id") @db.Char(36)
+  audioId         String?  @map("audio_id") @db.Char(36)
+  avatarId        String?  @map("avatar_id") @db.VarChar(100)
+  providerTaskId  String?  @map("provider_task_id") @db.VarChar(100)
+  status          String   @default("pending") @db.VarChar(20)
+  videoUrl        String?  @map("video_url") @db.VarChar(500)
+  storagePath     String?  @map("storage_path") @db.VarChar(500)
+  creditsConsumed Int?     @map("credits_consumed")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audio GeneratedAudio? @relation(fields: [audioId], references: [id])
+
+  @@index([userId])
+  @@map("video_generations")
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid()) @db.Char(36)
+  key       String   @unique @db.VarChar(100)
+  value     Json?
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("system_config")
+}
+
+model RewriteStyle {
+  id           String   @id @default(uuid()) @db.Char(36)
+  name         String   @db.VarChar(50)
+  label        String   @db.VarChar(50)
+  description  String?  @db.VarChar(255)
+  systemPrompt String   @map("system_prompt") @db.Text
+  isActive     Boolean  @default(true) @map("is_active")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("rewrite_styles")
+}

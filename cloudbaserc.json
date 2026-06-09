@@ -1,0 +1,33 @@
+{
+  "envId": "{{env.CLOUDBASE_ENV_ID}}",
+  "version": "2.0",
+  "framework": {
+    "name": "nextjs",
+    "plugins": {
+      "nextjs": {
+        "use": "@cloudbase/framework-plugin-next@latest",
+        "inputs": {
+          "buildCommand": "npx prisma generate && next build",
+          "outputDir": ".next",
+          "installCommand": "npm install"
+        }
+      }
+    }
+  },
+  "envVariables": {
+    "DATABASE_URL": "{{env.DATABASE_URL}}",
+    "JWT_SECRET": "{{env.JWT_SECRET}}",
+    "COS_SECRET_ID": "{{env.COS_SECRET_ID}}",
+    "COS_SECRET_KEY": "{{env.COS_SECRET_KEY}}",
+    "COS_BUCKET": "{{env.COS_BUCKET}}",
+    "COS_REGION": "{{env.COS_REGION}}",
+    "DEEPSEEK_API_KEY": "{{env.DEEPSEEK_API_KEY}}",
+    "VOLCENGINE_ACCESS_KEY": "{{env.VOLCENGINE_ACCESS_KEY}}",
+    "VOLCENGINE_SECRET_KEY": "{{env.VOLCENGINE_SECRET_KEY}}",
+    "ALIYUN_SMS_ACCESS_KEY_ID": "{{env.ALIYUN_SMS_ACCESS_KEY_ID}}",
+    "ALIYUN_SMS_ACCESS_KEY_SECRET": "{{env.ALIYUN_SMS_ACCESS_KEY_SECRET}}",
+    "ALIYUN_SMS_SIGN_NAME": "{{env.ALIYUN_SMS_SIGN_NAME}}",
+    "ALIYUN_SMS_TEMPLATE_CODE": "{{env.ALIYUN_SMS_TEMPLATE_CODE}}",
+    "JINA_API_KEY": "{{env.JINA_API_KEY}}"
+  }
+}
